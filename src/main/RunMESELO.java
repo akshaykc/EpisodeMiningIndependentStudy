@@ -21,7 +21,7 @@ public class RunMESELO {
 			MESELO meselo = new MESELO(
 					"./data/alginput/synthetic/toy2sequence.dat",
 					"./data/freqepisodes/synthetic/toy2sequence.csv","./data/alginput/synthetic/toy2sequenceExternalWeights.dat", 11, 3, 6,
-					2, 1, 8);
+					2, 1, 14);
 			// MESELO meselo = new MESELO(
 			// "./data/alginput/real/chinaStock/stock-1.data",
 			// "./data/freqepisodes/real/chinaStock/stock-1.csv", 10, 3, 2470,

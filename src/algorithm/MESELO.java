@@ -138,9 +138,9 @@ public class MESELO {
 			while ((line = reader.readLine()) != null) {
 				String[] array = StringUtils.split(line.trim(), ' ');
 				for (String event : array) {
-					eventSet.add(event);
-					if (!this.eventDic.containsKey(event)) {
-						eventDic.put(event, offset++);
+					eventSet.add(stripInternalWeight(event));
+					if (!this.eventDic.containsKey(stripInternalWeight(event))) {
+						eventDic.put(stripInternalWeight(event), offset++);
 					}
 				}
 			}
@@ -170,7 +170,12 @@ public class MESELO {
 		}
 		return eventSet.size();
 	}
-
+	
+	public String stripInternalWeight(String event){
+		//return event.replaceAll("[^A-Za-z]", "");
+		return event;
+	}
+	
 	/**
 	 * The core of algorithm.
 	 */
@@ -393,7 +398,7 @@ public class MESELO {
 				if (episode.indexOf("->") > -1) {
 					String[] array = episode.split("->");
 					for(String event:array){
-						utility += externalWeightDict.get(event);
+						utility += Integer.parseInt(event.replaceAll("[A-Za-z]",""))*externalWeightDict.get(event.replaceAll("[^A-Za-z]", ""));
 					}
 					if (highUtilityEpisodeSet.containsKey(episode)) {
 						highUtilityEpisodeSet.put(episode,
