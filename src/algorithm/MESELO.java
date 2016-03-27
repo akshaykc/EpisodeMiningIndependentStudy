@@ -46,6 +46,7 @@ public class MESELO {
 	private String externalWeightsFile;
 	private String outputFile;
 	private Map<String, Integer> frequentEpisodeSet = new HashMap<String, Integer>();
+	private Map<String, Integer> topKEpisodeSet = new HashMap<String, Integer>();
 	private Map<String, Integer> candidateEpisodeSet = new ConcurrentHashMap<String, Integer>();
 	private long startTime;
 	private long endTime;
@@ -438,6 +439,7 @@ public class MESELO {
 			Map<String, Integer> candidateEpisodeSet,
 			Map<String, Integer> frequentEpisodeSet, HashSet<String> occList,
 			Integer tbegin, Integer tend) {
+		int utility = 0;
 		// TODO Auto-generated method stub
 		if (tbegin <= tend && tbegin > 0) {
 			HashMap<String, Integer> volatileSet = new HashMap<String, Integer>();
@@ -449,13 +451,16 @@ public class MESELO {
 				while (rs.next()) {
 					ArrayList<TrieNode> trie = (ArrayList<TrieNode>) SerializeUtil
 							.unserialize(rs.getBytes(1));
+					
 					for (TrieNode node : trie) {
 						String curEpisode = node.getEpisode();
+						utility += Integer.parseInt(curEpisode.replaceAll("[A-Za-z]",""))*externalWeightDict.get(curEpisode.replaceAll("[^A-Za-z]", ""));
+						
 						if (volatileSet.containsKey(curEpisode)) {
 							volatileSet.put(curEpisode,
-									volatileSet.get(curEpisode) + 1);
+									volatileSet.get(curEpisode) + utility);
 						} else {
-							volatileSet.put(curEpisode, 1);
+							volatileSet.put(curEpisode, utility);
 						}
 					}
 				}// end while
