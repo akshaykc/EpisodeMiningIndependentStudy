@@ -46,7 +46,10 @@ public class MESELO {
 	private String externalWeightsFile;
 	private String outputFile;
 	private Map<String, Integer> frequentEpisodeSet = new HashMap<String, Integer>();
-	private Map<String, Integer> topKEpisodeSet = new HashMap<String, Integer>();
+	/*private Map<String, Integer> topKEpisodeSet = new HashMap<String, Integer>();
+	private int K = 10;
+	private int dynamicMinSup = 100000;
+	private String dynamicMinEpisode;*/
 	private Map<String, Integer> candidateEpisodeSet = new ConcurrentHashMap<String, Integer>();
 	private long startTime;
 	private long endTime;
@@ -232,7 +235,7 @@ public class MESELO {
 								this.frequentEpisodeSet, this.Q, Tbegin, Tend);
 					} else {
 						frequentEpisodeSet = UpdateHighUtilityEpisode(
-								candidateEpisodeSet, frequentEpisodeSet,
+								candidateEpisodeSet, frequentEpisodeSet/*, topKEpisodeSet*/,
 								this.Q, this.paras);
 					}
 
@@ -388,8 +391,8 @@ public class MESELO {
 	}
 	private Map<String, Integer> UpdateHighUtilityEpisode(
 			Map<String, Integer> candidateEpisodeSet,
-			Map<String, Integer> highUtilityEpisodeSet, HashSet<String> occList,
-			OnlineParas paras){
+			Map<String, Integer> highUtilityEpisodeSet, /*Map<String, Integer> topKSet,*/
+			HashSet<String> occList,OnlineParas paras){
 		int utility;
 		if (occList.size() > 0) {
 			Iterator<String> iter = occList.iterator();
@@ -399,7 +402,8 @@ public class MESELO {
 				if (episode.indexOf("->") > -1) {
 					String[] array = episode.split("->");
 					for(String event:array){
-						utility += Integer.parseInt(event.replaceAll("[A-Za-z]",""))*externalWeightDict.get(event.replaceAll("[^A-Za-z]", ""));
+						utility += Integer.parseInt(event.replaceAll("[A-Za-z]",""))*
+								externalWeightDict.get(event.replaceAll("[^A-Za-z]", ""));
 					}
 					if (highUtilityEpisodeSet.containsKey(episode)) {
 						highUtilityEpisodeSet.put(episode,
@@ -418,6 +422,25 @@ public class MESELO {
 							candidateEpisodeSet.remove(episode);
 						}
 					}
+					/*if(topKSet.size() < K){
+						if(topKSet.containsKey(episode)){
+							topKSet.put(episode,topKSet.get(episode) + utility);
+							if(topKSet.get(episode) < dynamicMinSup){
+								dynamicMinSup = topKSet.get(episode);
+								dynamicMinEpisode = episode;
+							}
+						}
+						else{
+							topKSet.put(episode, utility);
+							if(utility < dynamicMinSup){
+								dynamicMinSup = utility;
+								dynamicMinEpisode = episode;
+							}
+						}
+					}else
+					{
+						if(topKSet.containsKey(episode))
+					}*/
 				}
 			}
 		}
@@ -453,6 +476,7 @@ public class MESELO {
 							.unserialize(rs.getBytes(1));
 					
 					for (TrieNode node : trie) {
+						utility = 0;
 						String curEpisode = node.getEpisode();
 						utility += Integer.parseInt(curEpisode.replaceAll("[A-Za-z]",""))*externalWeightDict.get(curEpisode.replaceAll("[^A-Za-z]", ""));
 						
@@ -523,7 +547,7 @@ public class MESELO {
 			volatileSet = null;
 		}
 		frequentEpisodeSet = UpdateHighUtilityEpisode(candidateEpisodeSet,
-				frequentEpisodeSet, occList, this.paras);
+				frequentEpisodeSet/*, topKEpisodeSet*/,occList, this.paras);
 		System.out.println(frequentEpisodeSet);
 		return frequentEpisodeSet;
 	}

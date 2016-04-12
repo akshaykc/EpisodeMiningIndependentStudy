@@ -20,7 +20,7 @@ public class RunMESELO {
 			// test period from time slot 1 to time slot 8.
 			MESELO meselo = new MESELO(
 					"./data/alginput/synthetic/toy2sequence.dat",
-					"./data/freqepisodes/synthetic/toy2sequence.csv","./data/alginput/synthetic/toy2sequenceExternalWeights.dat", 11, 3, 6,
+					"./data/freqepisodes/synthetic/toy2sequence.csv","./data/alginput/synthetic/toy2sequenceExternalWeights.dat", 20, 3, 6,
 					2, 1, 14);
 			// MESELO meselo = new MESELO(
 			// "./data/alginput/real/chinaStock/stock-1.data",
