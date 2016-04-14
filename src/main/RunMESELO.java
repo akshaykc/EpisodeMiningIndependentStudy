@@ -20,8 +20,10 @@ public class RunMESELO {
 			// test period from time slot 1 to time slot 8.
 			MESELO meselo = new MESELO(
 					"./data/alginput/synthetic/toy2sequence.dat",
-					"./data/freqepisodes/synthetic/toy2sequence.csv","./data/alginput/synthetic/toy2sequenceExternalWeights.dat", 20, 3, 6,
-					2, 1, 14);
+					"./data/freqepisodes/synthetic/toy2sequence.csv",
+					"./data/alginput/synthetic/toy2sequenceExternalWeights.dat",
+					"./data/alginput/synthetic/toy2sequenceWithProb.dat",
+					20, 3, 6, 2, 1, 14);
 			// MESELO meselo = new MESELO(
 			// "./data/alginput/real/chinaStock/stock-1.data",
 			// "./data/freqepisodes/real/chinaStock/stock-1.csv", 10, 3, 2470,
@@ -32,7 +34,9 @@ public class RunMESELO {
 			String output = args[1];
 			System.out
 					.println("*************************************\nRUN MESELO ALG.\n************************************");
-			MESELO meselo = new MESELO(filename, output, "./data/alginput/synthetic/toy2sequenceExternalWeights.dat",
+			MESELO meselo = new MESELO(filename, output, 
+					"./data/alginput/synthetic/toy2sequenceExternalWeights.dat",
+					"./data/alginput/synthetic/toy2sequenceWithProb.dat",
 					Integer.parseInt(args[2]), Integer.parseInt(args[3]),
 					Integer.parseInt(args[4]), Integer.parseInt(args[5]),
 					Integer.parseInt(args[6]), Integer.parseInt(args[7]));

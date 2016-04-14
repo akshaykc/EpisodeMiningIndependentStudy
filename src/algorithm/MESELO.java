@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -44,6 +45,7 @@ public class MESELO {
 
 	private String inputFile;
 	private String externalWeightsFile;
+	private String probFile;
 	private String outputFile;
 	private Map<String, Integer> frequentEpisodeSet = new HashMap<String, Integer>();
 	/*private Map<String, Integer> topKEpisodeSet = new HashMap<String, Integer>();
@@ -101,11 +103,13 @@ public class MESELO {
 	 *            - end time slot on the sequence. for whole sequence to test,
 	 *            begin = 1, end = |event sequence|.
 	 */
-	public MESELO(String inputFile, String outputFile, String externalWeightsFile, int min_sup, int delta,
-			int window_size, int updateFrequency, int begin, int end) {
+	public MESELO(String inputFile, String outputFile, String externalWeightsFile, String probFile,
+			int min_sup, int delta, int window_size, 
+			int updateFrequency, int begin, int end) {
 		this.inputFile = inputFile;
 		this.outputFile = outputFile;
 		this.externalWeightsFile=externalWeightsFile;
+		this.probFile = probFile;
 		this.paras = new OnlineParas(min_sup, delta, window_size,
 				updateFrequency);
 		String driver = "com.mysql.jdbc.Driver";
@@ -122,8 +126,35 @@ public class MESELO {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		generateCustomInputFile(this.probFile, this.inputFile);
+		
 		this.ESetSize = this.getEventDictionary(this.inputFile, this.externalWeightsFile);
+	}
+	private static final String newLine = System.getProperty("line.separator");
+	private int generateCustomInputFile(String probFile, String inputFile){
+		try {
+			
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					new FileInputStream(probFile), "UTF-8"));
+			BufferedWriter writer = new BufferedWriter(new FileWriter(inputFile));
+			
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				String[] eventAndProbString = StringUtils.split(line, ",");
+				String[] array = StringUtils.split(eventAndProbString[0].trim(), ' ');
+				for (String event : array) {
+					event = event + "," + StringUtils.split(line, ",")[1]+" ";
+					writer.write(event);
+				}
+				writer.write(newLine);
+			}
+			writer.close();
+			reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
 	}
 
 	/**
@@ -140,7 +171,8 @@ public class MESELO {
 			String line = null;
 			int offset = 0;
 			while ((line = reader.readLine()) != null) {
-				String[] array = StringUtils.split(line.trim(), ' ');
+				String[] eventAndProbString = StringUtils.split(line, ",");
+				String[] array = StringUtils.split(eventAndProbString[0].trim(), ' ');
 				for (String event : array) {
 					eventSet.add(stripInternalWeight(event));
 					if (!this.eventDic.containsKey(stripInternalWeight(event))) {
@@ -208,7 +240,8 @@ public class MESELO {
 							tmpS.clear();
 						}
 					});
-					String[] EkplusOne = StringUtils.split(line, " ");
+					String[] eventAndProbString = StringUtils.split(line, ",");
+					String[] EkplusOne = StringUtils.split(eventAndProbString[0], " ");
 					boolean isVaildEkplusOne = false;
 					// if (EkplusOne.length <= eventUpperBound) {
 					isVaildEkplusOne = true;
