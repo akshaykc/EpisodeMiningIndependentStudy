@@ -18,17 +18,27 @@ public class TrieNode implements Serializable {
 	private boolean lastMO;
 	private boolean[] children = null;
 	private String episode;
-
-	public TrieNode(String evt, Integer Te, Integer childSize) {
+	private float eventProbability;
+	
+	public TrieNode(String evt, Integer Te, Integer childSize, float evtPrb) {
 		this.event = evt;
 		this.Te = Te;
+		this.eventProbability = evtPrb;
 		this.children = new boolean[childSize];
 		for (int i = 0; i < childSize; i++) {
 			children[i] = false;
 		}
 		this.lastMO = true;
 	}
+	
+	public float getEventProbability() {
+		return eventProbability;
+	}
 
+	public void setEventProbability(float evtPrb) {
+		this.eventProbability = evtPrb;
+	}
+	
 	public String getEvent() {
 		return event;
 	}

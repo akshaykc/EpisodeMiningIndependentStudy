@@ -104,13 +104,13 @@ public class MESELO {
 	 *            begin = 1, end = |event sequence|.
 	 */
 	public MESELO(String inputFile, String outputFile, String externalWeightsFile, String probFile,
-			int min_sup, int delta, int window_size, 
+			int min_sup, float minProb,int delta, int window_size, 
 			int updateFrequency, int begin, int end) {
 		this.inputFile = inputFile;
 		this.outputFile = outputFile;
 		this.externalWeightsFile=externalWeightsFile;
 		this.probFile = probFile;
-		this.paras = new OnlineParas(min_sup, delta, window_size,
+		this.paras = new OnlineParas(min_sup, minProb, delta, window_size,
 				updateFrequency);
 		String driver = "com.mysql.jdbc.Driver";
 		String url = "jdbc:mysql://127.0.0.1:3306/onlinefem"; // ��ݿ�URL
@@ -171,12 +171,14 @@ public class MESELO {
 			String line = null;
 			int offset = 0;
 			while ((line = reader.readLine()) != null) {
-				String[] eventAndProbString = StringUtils.split(line, ",");
-				String[] array = StringUtils.split(eventAndProbString[0].trim(), ' ');
-				for (String event : array) {
-					eventSet.add(stripInternalWeight(event));
-					if (!this.eventDic.containsKey(stripInternalWeight(event))) {
-						eventDic.put(stripInternalWeight(event), offset++);
+				String[] events = StringUtils.split(line, " ");
+				//String[] eventAndProbString = StringUtils.split(line, ",");
+				//String[] array = StringUtils.split(eventAndProbString[0].trim(), ' ');
+				for (String event : events) {
+					String[] eventAndProbString = StringUtils.split(event, ",");
+					eventSet.add(eventAndProbString[0]);
+					if (!this.eventDic.containsKey(eventAndProbString[0])) {
+						eventDic.put(eventAndProbString[0], offset++);
 					}
 				}
 			}
@@ -240,8 +242,8 @@ public class MESELO {
 							tmpS.clear();
 						}
 					});
-					String[] eventAndProbString = StringUtils.split(line, ",");
-					String[] EkplusOne = StringUtils.split(eventAndProbString[0], " ");
+					//String[] eventAndProbString = StringUtils.split(line, ",");
+					String[] EkplusOne = StringUtils.split(line, " ");
 					boolean isVaildEkplusOne = false;
 					// if (EkplusOne.length <= eventUpperBound) {
 					isVaildEkplusOne = true;
@@ -390,7 +392,7 @@ public class MESELO {
 	 * @param paras
 	 * @return updated frequent episode set and candidate episode set
 	 */
-	private Map<String, Integer> UpdateFrequentEpisode(
+	/*private Map<String, Integer> UpdateFrequentEpisode(
 			Map<String, Integer> candidateEpisodeSet,
 			Map<String, Integer> frequentEpisodeSet, HashSet<String> occList,
 			OnlineParas paras) {
@@ -421,7 +423,7 @@ public class MESELO {
 			}
 		}
 		return frequentEpisodeSet;
-	}
+	}*/
 	private Map<String, Integer> UpdateHighUtilityEpisode(
 			Map<String, Integer> candidateEpisodeSet,
 			Map<String, Integer> highUtilityEpisodeSet, /*Map<String, Integer> topKSet,*/
@@ -434,9 +436,10 @@ public class MESELO {
 				utility = 0;
 				if (episode.indexOf("->") > -1) {
 					String[] array = episode.split("->");
-					for(String event:array){
-						utility += Integer.parseInt(event.replaceAll("[A-Za-z]",""))*
-								externalWeightDict.get(event.replaceAll("[^A-Za-z]", ""));
+					for(String eventWithProb:array){
+						String[] eventAndProb = eventWithProb.split(",");
+						utility += Integer.parseInt(eventAndProb[0].replaceAll("[A-Za-z]",""))*
+								externalWeightDict.get(eventAndProb[0].replaceAll("[^A-Za-z]", ""));
 					}
 					if (highUtilityEpisodeSet.containsKey(episode)) {
 						highUtilityEpisodeSet.put(episode,
@@ -450,9 +453,19 @@ public class MESELO {
 						}
 						if (candidateEpisodeSet.get(episode) >= paras
 								.getMin_sup()) {
-							highUtilityEpisodeSet.put(episode,
-									candidateEpisodeSet.get(episode));
-							candidateEpisodeSet.remove(episode);
+							String[] eventsWithProb = episode.split("->");
+							float episodeProbability = 0;
+							for(String eventWithProb : eventsWithProb){
+								String[] eventAndProb = eventWithProb.split(",");
+								eventAndProb[1] = eventAndProb[1];
+								episodeProbability = episodeProbability + Float.parseFloat(eventAndProb[1]);
+							}
+							if (episodeProbability >= paras
+									.getMinProb()) {
+								highUtilityEpisodeSet.put(episode,
+										candidateEpisodeSet.get(episode));
+								candidateEpisodeSet.remove(episode);
+							}
 						}
 					}
 					/*if(topKSet.size() < K){
@@ -511,7 +524,8 @@ public class MESELO {
 					for (TrieNode node : trie) {
 						utility = 0;
 						String curEpisode = node.getEpisode();
-						utility += Integer.parseInt(curEpisode.replaceAll("[A-Za-z]",""))*externalWeightDict.get(curEpisode.replaceAll("[^A-Za-z]", ""));
+						String[] curEventAndProb = curEpisode.split(",");
+						utility += Integer.parseInt(curEventAndProb[0].replaceAll("[A-Za-z]",""))*externalWeightDict.get(curEventAndProb[0].replaceAll("[^A-Za-z]", ""));
 						
 						if (volatileSet.containsKey(curEpisode)) {
 							volatileSet.put(curEpisode,
@@ -606,13 +620,14 @@ public class MESELO {
 					String prefix = nodeOnTrie.getEpisode();
 					for (String event : EkplusOne) {
 						if (nodeOnTrie.isLastMO()) {
-							int index = this.eventDic.get(event);
+							String[] eventAndProbString = StringUtils.split(event, ",");
+							int index = this.eventDic.get(eventAndProbString[0]);
 							if (nodeOnTrie.getChildren()[index] != true) {// add
 																			// a
 																			// child
 								nodeOnTrie.getChildren()[index] = true;
-								TrieNode newLeafNode = new TrieNode(event,
-										timestamp, this.ESetSize);
+								TrieNode newLeafNode = new TrieNode(eventAndProbString[0],
+										timestamp, this.ESetSize, Float.parseFloat(eventAndProbString[1]));
 								Object[] array = { prefix, event };
 								String newEpisode = StringUtils.join(array,
 										"->");
@@ -622,9 +637,19 @@ public class MESELO {
 							}
 						}
 					}
-					if (this.Q.contains(prefix)) {
+					String prefixWithoutProb;
+					HashSet<String> QWithoutProb = new HashSet<String>();
+					for(String episode:this.Q)
+					{
+						QWithoutProb.add(epWithoutProb(episode));
+					}
+					prefixWithoutProb = epWithoutProb(prefix);
+					if (QWithoutProb.contains(prefixWithoutProb)) {
 						nodeOnTrie.setLastMO(false);
 					}
+					/*if (this.Q.contains(prefix)) {
+						nodeOnTrie.setLastMO(false);
+					}*/
 				}
 				tmp.trimToSize();
 				trie.addAll(tmp);
@@ -632,7 +657,19 @@ public class MESELO {
 		}
 		return this.Q;
 	}
-
+	
+	private String epWithoutProb(String episodeWithProb)
+	{
+		ArrayList<String> temp = new ArrayList<String>();
+		String[] eventsWithProb = episodeWithProb.split("->");
+		for(String event:eventsWithProb)
+		{
+			temp.add(event.split(",")[0]);
+		}
+		String episodeWithoutProb = StringUtils.join(temp,
+				"->");
+		return episodeWithoutProb;
+	}
 	/**
 	 * build an episode trie to \mathcal{M}_{in}.
 	 * 
@@ -646,7 +683,8 @@ public class MESELO {
 			return null;
 		ArrayList<TrieNode> ret = new ArrayList<TrieNode>();
 		for (String event : EkplusOne) {
-			TrieNode node = new TrieNode(event, timestamp, this.ESetSize);
+			String[] eventAndProbString = StringUtils.split(event, ",");
+			TrieNode node = new TrieNode(eventAndProbString[0], timestamp, this.ESetSize, Float.parseFloat(eventAndProbString[1]));
 			node.setEpisode(event);
 			ret.add(node);
 			this.Q.add(event);

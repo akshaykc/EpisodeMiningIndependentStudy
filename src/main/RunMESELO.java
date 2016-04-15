@@ -18,12 +18,13 @@ public class RunMESELO {
 			// min_sup = 2; delta = 3; DELTA=6; when time slot >=6, every 2 time
 			// slot output frequent episodes.
 			// test period from time slot 1 to time slot 8.
+			float prob = (float)1.22;
 			MESELO meselo = new MESELO(
 					"./data/alginput/synthetic/toy2sequence.dat",
 					"./data/freqepisodes/synthetic/toy2sequence.csv",
 					"./data/alginput/synthetic/toy2sequenceExternalWeights.dat",
 					"./data/alginput/synthetic/toy2sequenceWithProb.dat",
-					20, 3, 6, 2, 1, 14);
+					20, prob, 3, 6, 2, 1, 14);
 			// MESELO meselo = new MESELO(
 			// "./data/alginput/real/chinaStock/stock-1.data",
 			// "./data/freqepisodes/real/chinaStock/stock-1.csv", 10, 3, 2470,
@@ -36,7 +37,7 @@ public class RunMESELO {
 					.println("*************************************\nRUN MESELO ALG.\n************************************");
 			MESELO meselo = new MESELO(filename, output, 
 					"./data/alginput/synthetic/toy2sequenceExternalWeights.dat",
-					"./data/alginput/synthetic/toy2sequenceWithProb.dat",
+					"./data/alginput/synthetic/toy2sequenceWithProb.dat", 0,//TO DO : Fix it
 					Integer.parseInt(args[2]), Integer.parseInt(args[3]),
 					Integer.parseInt(args[4]), Integer.parseInt(args[5]),
 					Integer.parseInt(args[6]), Integer.parseInt(args[7]));

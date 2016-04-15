@@ -8,11 +8,13 @@ package structures;
  */
 public class OnlineParas {
 	private int min_sup;
+	private float minProb;
 	private int delta;
 	private int DELTA;
 	private int updateFrequency;
 
-	public OnlineParas(int support, int delta, int window, int frequency) {
+	public OnlineParas(int support, float probability, int delta, int window, int frequency) {
+		this.minProb = probability;
 		this.min_sup = support;
 		this.delta = delta;
 		this.DELTA = window;
@@ -21,6 +23,10 @@ public class OnlineParas {
 
 	public int getMin_sup() {
 		return min_sup;
+	}
+	
+	public float getMinProb() {
+		return minProb;
 	}
 
 	public void setMin_sup(int min_sup) {
