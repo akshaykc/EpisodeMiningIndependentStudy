@@ -453,12 +453,14 @@ public class MESELO {
 						}
 						if (candidateEpisodeSet.get(episode) >= paras
 								.getMin_sup()) {
+							int episodeOccCount = candidateEpisodeSet.get(episode)/utility;
 							String[] eventsWithProb = episode.split("->");
 							float episodeProbability = 0;
 							for(String eventWithProb : eventsWithProb){
 								String[] eventAndProb = eventWithProb.split(",");
 								eventAndProb[1] = eventAndProb[1];
 								episodeProbability = episodeProbability + Float.parseFloat(eventAndProb[1]);
+								episodeProbability = episodeProbability * episodeOccCount;
 							}
 							if (episodeProbability >= paras
 									.getMinProb()) {
@@ -466,27 +468,13 @@ public class MESELO {
 										candidateEpisodeSet.get(episode));
 								candidateEpisodeSet.remove(episode);
 							}
+							else
+							{
+								candidateEpisodeSet.put(episode,
+									candidateEpisodeSet.get(episode) + utility);
+							}
 						}
 					}
-					/*if(topKSet.size() < K){
-						if(topKSet.containsKey(episode)){
-							topKSet.put(episode,topKSet.get(episode) + utility);
-							if(topKSet.get(episode) < dynamicMinSup){
-								dynamicMinSup = topKSet.get(episode);
-								dynamicMinEpisode = episode;
-							}
-						}
-						else{
-							topKSet.put(episode, utility);
-							if(utility < dynamicMinSup){
-								dynamicMinSup = utility;
-								dynamicMinEpisode = episode;
-							}
-						}
-					}else
-					{
-						if(topKSet.containsKey(episode))
-					}*/
 				}
 			}
 		}
@@ -565,15 +553,27 @@ public class MESELO {
 			}
 			for (Entry<String, Integer> entry : volatileSet.entrySet()) {
 				String episode = entry.getKey();
+				
+				String[] eventsWithProb = episode.split("->");
+				float oneOccEpisodeProbability = 0;
+				for(String eventWithProb : eventsWithProb){
+					String[] eventAndProb = eventWithProb.split(",");
+					eventAndProb[1] = eventAndProb[1];
+					oneOccEpisodeProbability = oneOccEpisodeProbability + Float.parseFloat(eventAndProb[1]);
+				}
+				
 				if (frequentEpisodeSet.containsKey(episode)) {
-					if (frequentEpisodeSet.get(episode) - entry.getValue() < this.paras
-							.getMin_sup()) {
+					if ((frequentEpisodeSet.get(episode) - entry.getValue() < 
+							this.paras.getMin_sup()) || 
+							((oneOccEpisodeProbability * (frequentEpisodeSet.get(episode)/
+									entry.getValue())) < paras.getMinProb())) {
 						candidateEpisodeSet.put(
 								episode,
 								frequentEpisodeSet.get(episode)
 										- entry.getValue());
 						frequentEpisodeSet.remove(episode);
-					} else {
+					}
+					else {
 						frequentEpisodeSet.put(
 								episode,
 								frequentEpisodeSet.get(episode)
